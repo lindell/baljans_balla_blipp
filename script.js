@@ -89,12 +89,16 @@ function failedBlipp(data, textStatus){
 };
 
 function animateHighscore(times){
+  $("#highscore").show();
   var newSize = Math.floor(Math.random()*50+50);
   setHighscoreSize(newSize);
   nextHighscoreColor();
 
   if(times-- > 0){
     setTimeout(function(){animateHighscore(times)}, 100);
+  }
+  else{
+    $("#highscore").hide();
   }
 }
 

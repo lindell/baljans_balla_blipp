@@ -47,6 +47,7 @@ h2 {
     color: #FF2b2b;
 }
 #highscore{
+  display: none;
   position: absolute;
   top: 50%;
   left: 0;
