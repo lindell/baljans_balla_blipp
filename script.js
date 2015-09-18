@@ -12,6 +12,8 @@ var defaultColor = "#f70079";
 var greenColor = "#00F771";
 var redColor = "#FF2b2b";
 
+var highscoreColors=new Array("blue","yellow","lime","magenta","aqua","green","orange","crimson","royalblue","hotpink","indigo","dodgerblue","chartreuse","skyblue","red");
+
 //Never lose focus (by drinking a lot of coffee)
 $(function () {
     $("#rfid").focus();
@@ -85,3 +87,25 @@ function failedBlipp(data, textStatus){
 
     console.log("Failed blipp with status: " + textStatus);
 };
+
+function animateHighscore(times){
+  var newSize = Math.floor(Math.random()*50+50);
+  setHighscoreSize(newSize);
+  nextHighscoreColor();
+
+  if(times-- > 0){
+    setTimeout(function(){animateHighscore(times)}, 100);
+  }
+}
+
+var highscoreColorI = 0;
+function nextHighscoreColor(){
+  var newColor = highscoreColors[highscoreColorI++ % highscoreColors.length];
+  $("#highscore").css({color:newColor});
+};
+
+function setHighscoreSize(size){
+  var fontSize = Math.floor(size);
+  var margin = -Math.floor(size/2);
+  $("#highscore").css({fontSize: fontSize+"px", marginTop: margin+"px"});
+}

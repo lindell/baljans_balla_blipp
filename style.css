@@ -4,6 +4,8 @@ body {
 body, html {
     overflow-x: hidden;
     overflow-y: hidden;
+    width: 100%;
+    height: 100%;
 }
 h1 {
     font-family: 'Lobster', cursive;
@@ -43,4 +45,14 @@ h2 {
 }
 #icon-failure {
     color: #FF2b2b;
+}
+#highscore{
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  margin-top:-40px;
+  font-family: "Comic Sans MS", cursive, sans-serif;
+  font-size: 80px;
 }
