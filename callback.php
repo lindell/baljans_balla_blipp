@@ -9,20 +9,6 @@ if (empty($id) || !is_numeric($id)) {
    exit;
 }
 
-$ch = curl_init(API_URL);
-curl_setopt($ch,CURLOPT_USERPWD, API_USERPWD);
-curl_setopt($ch, CURLOPT_POST, 1);
-curl_setopt($ch, CURLOPT_POSTFIELDS, "rfid_number=".$id);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER ,1);
-curl_setopt($ch, CURLOPT_SSL_CIPHER_LIST, 'TLSv1');
-$user = json_decode(curl_exec($ch),true);
-
-if (empty($user)) {
-   header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
-   echo json_encode(array('message' => 'No user found with RFID'));
-   exit;
-}
-
 $const = 'constant';
 $c = pg_connect("host={$const('DB_HOST')} dbname={$const('DB_NAME')} user={$const('DB_USER')} password={$const('DB_PWD')} connect_timeout=5");
 
@@ -33,7 +19,33 @@ if (!$c) {
    exit;
 }
 
-$uid_array = pg_query_params($c, "SELECT u.id FROM auth_user u WHERE u.username=$1", array($user['liu_id']));
+$cached_rfid = pg_fetch_array(pg_query_params($c, "SELECT liu_id FROM cached_rfid WHERE rfid=$1", $id)));
+
+if(!empty($cached_rfid)){
+  $liu_id = $cached_rfid["liu_id"];
+}
+else{
+  $ch = curl_init(API_URL);
+  curl_setopt($ch,CURLOPT_USERPWD, API_USERPWD);
+  curl_setopt($ch, CURLOPT_POST, 1);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, "rfid_number=".$id);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER ,1);
+  curl_setopt($ch, CURLOPT_SSL_CIPHER_LIST, 'TLSv1');
+  $user = json_decode(curl_exec($ch),true);
+
+  if (empty($user)) {
+     header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
+     echo json_encode(array('message' => 'No user found with RFID'));
+     exit;
+  }
+
+  $liu_id = $user['liu_id'];
+
+  //Cache the lookup
+  $caching = pg_query_params($c, "INSERT INTO cached_rfid (rfid, liu_id) VALUES ($1, $2)", array($id, $liu_id));
+}
+
+$uid_array = pg_query_params($c, "SELECT u.id FROM auth_user u WHERE u.username=$1", array($liu_id));
 $uid = pg_fetch_array($uid_array);
 
 if (empty($uid)) {
