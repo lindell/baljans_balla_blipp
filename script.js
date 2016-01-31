@@ -13,12 +13,28 @@ var defaultColor = "#f70079";
 var greenColor = "#00F771";
 var redColor = "#FF2b2b";
 
+var type = "normal";
+
 //Never lose focus (by drinking a lot of coffee)
 $(function () {
     $("#rfid").focus();
 });
 $("#rfid").blur(function(){
     $("#rfid").focus();
+});
+
+$("#rfid").on('input', function() {
+    //Remove all non digits
+    var filter = (/([0-9]*)([a-zA-Z]*)/).exec($("#rfid").val());
+    $("#rfid").val(filter[1]);
+
+    var command = filter[2];
+    if(command == "a"){
+      type = "big";
+    }
+    else if(command == "b"){
+      type = "owncup"
+    }
 });
 
 $(document).ready(function(){
@@ -35,7 +51,7 @@ $("#form").submit(function (event) {
     var request = $.ajax({
         url: "callback.php",
         method: "POST",
-        data: { id : rfid },
+        data: { id : rfid, type: type },
         dataType: "json",
         success : successfulBlipp,
         error: failedBlipp
@@ -43,6 +59,9 @@ $("#form").submit(function (event) {
 
     //Clear input
     $("#rfid").val("");
+
+    //Reset type to normal cup
+    type = "normal"
 
     event.preventDefault();
 });
