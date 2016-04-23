@@ -1,14 +1,15 @@
-//Background colors
+// Background colors
 var defaultBg = "#00aae4";
 var redBg = "#820C0C";
 var greenBg = "rgb(0, 165, 76)";
 
-//Animation times
+// Animation times
 var transitionTime = 300;
 var errorDelay = 2300;
 var successDelay = 2300;
+var comboTime = 4000;
 
-//Text colors
+// Text colors
 var defaultColor = "#f70079";
 var greenColor = "#00F771";
 var redColor = "#FF2b2b";
@@ -17,12 +18,15 @@ var successSound = new Audio("sounds/success.wav");
 var errorSound = new Audio("sounds/error.wav");
 
 // ID of the reset timeout. Is used for detecting when success/failed screen is
-//displayed and when to abort that if needed.
+// displayed and when to abort that if needed.
 var resetTimeout = -1;
 // Function that should be called when the reset has been done
 var callAfterReset = null;
 
-//Never lose focus (by drinking a lot of coffee)
+var comboTimeout = -1;
+var combo = 0;
+
+// Never lose focus (by drinking a lot of coffee)
 $(function () {
   $("#rfid").focus();
 });
@@ -31,11 +35,11 @@ $("#rfid").blur(function(){
 });
 
 $(document).ready(function(){
-  //Hide after load to ensure that the icons are loaded
+  // Hide after load to ensure that the icons are loaded
   $("#icon-success, #icon-failure").hide();
 });
 
-//When the scanner has written the rfid code
+// When the scanner has written the rfid code
 $("#form").submit(function (event) {
     // If the success / failed screen is active
     if(resetTimeout !== -1){
@@ -48,7 +52,7 @@ $("#form").submit(function (event) {
     console.log("Sending blipp request for id: " + rfid);
 
     var request = $.ajax({
-        url: "callback.php",
+        url: "callback.json",
         method: "POST",
         data: { id : rfid },
         dataType: "json",
@@ -56,7 +60,7 @@ $("#form").submit(function (event) {
         error: failedBlipp
     });
 
-    //Clear input
+    // Clear input
     $("#rfid").val("");
     $("#rfid").prop('disabled', true);
 
@@ -74,6 +78,33 @@ function successfulBlipp(data, textStatus){
       successfulAnimation(data, textStatus);
     }
   }
+
+  increaseCombo();
+}
+
+function increaseCombo(){
+  combo++;
+  var textSize = Math.log(combo) + 1;
+
+  if(comboTimeout !== -1){
+    clearTimeout(comboTimeout);
+  }
+  comboTimeout = setTimeout(resetCombo, comboTime);
+
+  if(combo >= 2){
+    $(".combo")
+      .text("x" + combo)
+      .css({"font-size": textSize + "em"})
+      .stop()
+      .fadeTo(200, 1)
+      .fadeTo(comboTime - 200, 0);
+  }
+}
+
+function resetCombo(){
+  combo = 0;
+
+  $(".combo").text("");
 }
 
 function failedBlipp(data, textStatus){
@@ -93,16 +124,16 @@ function successfulAnimation(data, textStatus) {
     // Some debugging
     console.log("Successful blipp with status: " + textStatus);
 
-    //Play success sound
+    // Play success sound
     successSound.play();
 
-    //Change the background color
+    // Change the background color
     $("body").transition({backgroundColor: greenBg}, transitionTime, 'easeOutCubic');
 
-    //Animate the success icon
+    // Animate the success icon
     $("#icon-success").show(0).transition({ opacity: 1 }, transitionTime, 'easeOutCubic');
 
-    //Change the color of the main text to match the other text colors
+    // Change the color of the main text to match the other text colors
     $("h1").transition({color: greenColor}, transitionTime, 'easeOutCubic');
 
     // Move all (most) content up
@@ -112,6 +143,9 @@ function successfulAnimation(data, textStatus) {
     });
 
     $("h2").css({color: greenColor});
+
+    // Combo meter
+    $(".combo-container").transition({color: greenColor}, transitionTime, 'easeOutCubic');
 
     if(data["message"]){
         $("#balance-message h2").html(data["message"]);
@@ -125,18 +159,18 @@ function failedAnimation(data, textStatus){
     // Some debuging
     console.log("Failed blipp with status: " + textStatus);
 
-    //Play error sound
+    // Play error sound
     errorSound.play();
 
     var data = data.responseJSON;
 
-    //Change the background color
+    // Change the background color
     $("body").transition({backgroundColor: redBg}, transitionTime);
 
-    //Change the color of the main text to match the other text colors
+    // Change the color of the main text to match the other text colors
     $("h1").transition({color: redColor}, transitionTime);
 
-    //Animate the error icon
+    // Animate the error icon
     $("#icon-failure").show(0).transition({ opacity: 1 }, transitionTime);
 
     // Move all (most) content up
@@ -145,8 +179,11 @@ function failedAnimation(data, textStatus){
       $("#rfid").focus();
     });
 
-    //Change the color of the main text to match the other text colors
+    // Change the color of the main text to match the other text colors
     $("h2").css({color: redColor});
+
+    // Combo meter
+    $(".combo-container").transition({color: redColor}, transitionTime, 'easeOutCubic');
 
     if(data["message"]){
         $("#balance-message h2").text(data["message"]);
@@ -162,6 +199,7 @@ function resetBlipp(){
   $("#icon-failure").transition({ opacity: 0 }, transitionTime).hide(0);
   $("h1").transition({color: defaultColor}, transitionTime, 'easeOutCubic');
   $("#maindiv").transition({ y: '0px' }, transitionTime, 'easeOutCubic');
+  $(".combo-container").transition({color: defaultColor}, transitionTime, 'easeOutCubic');
 
   $("#balance-message").transition({ opacity: 0 }, transitionTime, function(){
     resetTimeout = -1;

@@ -70,3 +70,45 @@ h2 {
 #title{
   padding-top: 350px;
 }
+
+.combo-container{
+  font-size: 60px;
+  font-family: sans-serif;
+  color: #f70079;
+  font-weight: bold;
+  position: absolute;
+  top: 25px;
+  right: 40px;
+}
+
+.combo{
+  position: relative;
+  animation: 0.15s comboAnimation infinite;
+}
+
+@keyframes comboAnimation{
+  0%{
+    left: 0;
+    top: 0;
+  }
+
+  20%{
+    left: 0;
+    top: 2px;
+  }
+
+  40%{
+    left: 2px;
+    top: 2px;
+  }
+
+  80%{
+    left: 2px;
+    top: 0;
+  }
+
+  100%{
+    left: 0;
+    top: 0;
+  }
+}
